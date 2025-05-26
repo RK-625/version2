@@ -6,17 +6,13 @@ let isListening = false;
 // Function to extract problem data from the page
 function extractProblemData() {
     try {
-        // 1. Extract problem title - prioritize the main <h1> for GFG
+        // 1. Extract problem title - Use <h1> tag as shown in the screenshot
         let title = '';
         const h1 = document.querySelector('h1');
         if (h1 && h1.textContent.trim().length > 0) {
             title = h1.textContent.trim();
         } else {
-            // fallback to old selectors if needed
-            const titleElement = document.querySelector(
-                '.problems_header_content__title__L2cCq, .problem-statement > h2, h1.title'
-            );
-            title = titleElement ? titleElement.textContent.trim() : 'Unknown Problem';
+            title = 'Unknown Problem';
         }
 
         // 2. Extract difficulty
@@ -61,7 +57,7 @@ function extractProblemData() {
         let solution = '';
         let language = 'cpp';
 
-        // Try CodeMirror rendered code first (GFG uses CodeMirror)
+        // Use CodeMirror rendered lines
         const codeMirrorLines = document.querySelectorAll('.CodeMirror-code .CodeMirror-line');
         if (codeMirrorLines.length > 0) {
             solution = Array.from(codeMirrorLines)
@@ -69,7 +65,7 @@ function extractProblemData() {
                 .join('\n');
         }
 
-        // If still no solution, fallback to textarea (for other editors)
+        // If no solution is found, fallback to visible textareas (if any)
         if (!solution) {
             const codeEditors = [
                 '.monaco-editor textarea',
@@ -83,17 +79,6 @@ function extractProblemData() {
                 const editor = document.querySelector(selector);
                 if (editor && editor.value) {
                     solution = editor.value;
-                    break;
-                }
-            }
-        }
-
-        // If still no solution, try visible code blocks
-        if (!solution) {
-            const codeBlocks = document.querySelectorAll('pre code, .code-block');
-            for (const block of codeBlocks) {
-                if (block.textContent && block.textContent.length > 50) {
-                    solution = block.textContent;
                     break;
                 }
             }
