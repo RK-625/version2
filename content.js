@@ -6,16 +6,24 @@ let isListening = false;
 // Function to extract problem data from the page
 function extractProblemData() {
     try {
-        // Extract problem title - Updated selectors and logic
-        const titleElement = document.querySelector('.problems_header_content__title__L2cCq, .problem-statement > h2, h1.title');
-        const problemTitle = titleElement ? titleElement.textContent.trim() : '';
-        
-        // Fallback for title if not found with primary selectors
-        const title = problemTitle || document.querySelector('h1')?.textContent.trim() || 'Unknown Problem';
+        // 1. Extract problem title - prioritize the main <h1> for GFG
+        let title = '';
+        const h1 = document.querySelector('h1');
+        if (h1 && h1.textContent.trim().length > 0) {
+            title = h1.textContent.trim();
+        } else {
+            // fallback to old selectors if needed
+            const titleElement = document.querySelector(
+                '.problems_header_content__title__L2cCq, .problem-statement > h2, h1.title'
+            );
+            title = titleElement ? titleElement.textContent.trim() : 'Unknown Problem';
+        }
 
-        // Extract difficulty
-        const difficultyElement = document.querySelector('.problems_header_content__difficulty__B3zR9, .difficulty-level');
+        // 2. Extract difficulty
         let difficulty = 'Medium'; // default
+        const difficultyElement = document.querySelector(
+            '.problems_header_content__difficulty__B3zR9, .difficulty-level'
+        );
         if (difficultyElement) {
             const diffText = difficultyElement.textContent.toLowerCase();
             if (diffText.includes('easy') || diffText.includes('basic')) difficulty = 'Easy';
@@ -23,61 +31,64 @@ function extractProblemData() {
             else if (diffText.includes('medium')) difficulty = 'Medium';
         }
 
-        // Extract only topic tags (not company or interview tags)
-        const topicTagsContainer = document.querySelector('.problems_tag_container__kWANg, .problemTagsContainer');
+        // 3. Extract topic tags
         let topics = [];
-        
+        const topicTagsContainer = document.querySelector('.problems_tag_container__kWANg, .problemTagsContainer');
         if (topicTagsContainer) {
-            // Look specifically for topic tags
             const topicSection = Array.from(document.querySelectorAll('section, div'))
                 .find(section => section.textContent.includes('Topic Tags'));
-            
             if (topicSection) {
                 const tagElements = topicSection.querySelectorAll('a, span.tag');
                 topics = Array.from(tagElements)
                     .map(el => el.textContent.trim())
-                    .filter(topic => 
-                        topic && 
-                        !topic.includes('Company') && 
+                    .filter(topic =>
+                        topic &&
+                        !topic.includes('Company') &&
                         !topic.includes('Interview') &&
                         topic !== 'Topic Tags'
                     );
             }
         }
-
-        // Fallback for topics if none found
         if (topics.length === 0) {
             const defaultTags = ['Arrays', 'Data Structures', 'Algorithms'];
             const problemText = document.body.textContent.toLowerCase();
             topics = defaultTags.filter(tag => problemText.includes(tag.toLowerCase()));
         }
 
-        // Get current URL
         const url = window.location.href;
 
-        // Try to extract solution code
+        // 4. Extract solution code from CodeMirror
         let solution = '';
         let language = 'cpp';
-        
-        // Look for code editor content
-        const codeEditors = [
-            '.monaco-editor textarea',
-            '.CodeMirror textarea',
-            '#editor textarea',
-            '.ace_text-input',
-            '[class*="editor"] textarea',
-            '.code-editor textarea'
-        ];
 
-        for (const selector of codeEditors) {
-            const editor = document.querySelector(selector);
-            if (editor && editor.value) {
-                solution = editor.value;
-                break;
+        // Try CodeMirror rendered code first (GFG uses CodeMirror)
+        const codeMirrorLines = document.querySelectorAll('.CodeMirror-code .CodeMirror-line');
+        if (codeMirrorLines.length > 0) {
+            solution = Array.from(codeMirrorLines)
+                .map(line => line.textContent)
+                .join('\n');
+        }
+
+        // If still no solution, fallback to textarea (for other editors)
+        if (!solution) {
+            const codeEditors = [
+                '.monaco-editor textarea',
+                '.CodeMirror textarea',
+                '#editor textarea',
+                '.ace_text-input',
+                '[class*="editor"] textarea',
+                '.code-editor textarea'
+            ];
+            for (const selector of codeEditors) {
+                const editor = document.querySelector(selector);
+                if (editor && editor.value) {
+                    solution = editor.value;
+                    break;
+                }
             }
         }
 
-        // If no solution found in editor, try to get it from visible code blocks
+        // If still no solution, try visible code blocks
         if (!solution) {
             const codeBlocks = document.querySelectorAll('pre code, .code-block');
             for (const block of codeBlocks) {
@@ -88,7 +99,7 @@ function extractProblemData() {
             }
         }
 
-        // Try to detect language
+        // 5. Detect language from selector dropdown
         const langSelectors = document.querySelectorAll('select[class*="lang"], .language-selector');
         if (langSelectors.length > 0) {
             const langText = langSelectors[0].textContent.toLowerCase();
@@ -103,7 +114,7 @@ function extractProblemData() {
             difficulty,
             topics: topics.length > 0 ? topics : ['Data Structures'],
             url,
-            solution,
+            solution: solution.trim(),
             language,
             timestamp: new Date().toISOString()
         };
@@ -300,8 +311,15 @@ let currentUrl = window.location.href;
 setInterval(() => {
     if (window.location.href !== currentUrl) {
         currentUrl = window.location.href;
-        if (currentUrl.includes('/problems/')) {
-            setTimeout(initialize, 1000);
-        }
+        initialize();
     }
 }, 1000);
+
+// Listen for sync command from popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'syncProblem') {
+        syncProblem().then(() => sendResponse({ success: true }))
+            .catch(() => sendResponse({ success: false }));
+        return true;
+    }
+});
