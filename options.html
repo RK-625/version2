@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>GFG to Notion Sync - Settings</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🚀 GFG to Notion Sync</h1>
+            <p>Configure your Notion integration settings</p>
+        </header>
+
+        <div class="content">
+            <form id="settingsForm">
+                <div class="section">
+                    <h2>Sync Preferences</h2>
+                    <div class="form-group">
+                        <label for="defaultSheet">Default Sheet/Category</label>
+                        <input type="text" id="defaultSheet" placeholder="DSA Practice">
+                        <small>Default value for the Sheet property (optional)</small>
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" id="autoSync">
+                            <span class="checkmark"></span>
+                            Auto-sync on successful submission
+                        </label>
+                        <small>Automatically sync problems when you solve them successfully</small>
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" id="includeCode">
+                            <span class="checkmark"></span>
+                            Include solution code
+                        </label>
+                        <small>Add your solution code to the Notion page</small>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Setup Instructions</h2>
+                    <div class="instructions">
+                        <h3>1. Create a Notion Integration</h3>
+                        <ol>
+                            <li>Go to <a href="https://www.notion.so/my-integrations" target="_blank">https://www.notion.so/my-integrations</a></li>
+                            <li>Click "New integration"</li>
+                            <li>Give it a name (e.g., "GFG Sync")</li>
+                            <li>Copy the "Internal Integration Token"</li>
+                        </ol>
+
+                        <h3>2. Setup Your Database</h3>
+                        <ol>
+                            <li>Create a new database in Notion</li>
+                            <li>Add these properties:
+                                <ul>
+                                    <li><strong>Question Name</strong> (Title)</li>
+                                    <li><strong>Platform</strong> (Select)</li>
+                                    <li><strong>Difficulty</strong> (Select: Easy, Medium, Hard)</li>
+                                    <li><strong>Topic</strong> (Multi-select)</li>
+                                    <li><strong>Question URL</strong> (URL)</li>
+                                    <li><strong>Created time</strong> (Created time)</li>
+                                    <li><strong>Sheet</strong> (Select - optional)</li>
+                                </ul>
+                            </li>
+                            <li>Share the database with your integration</li>
+                            <li>Copy the database ID from the URL</li>
+                        </ol>
+
+                        <h3>3. Get Database ID</h3>
+                        <p>From your database URL: <code>https://notion.so/your-db-id?v=...</code></p>
+                        <p>Copy the part between the last slash and the question mark</p>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary">Save Settings</button>
+                    <button type="button" id="testConnection" class="btn btn-secondary">Test Connection</button>
+                    <button type="button" id="resetSettings" class="btn btn-danger">Reset All</button>
+                </div>
+            </form>
+
+            <div class="status" id="status" style="display: none;">
+                <div class="status-message" id="statusMessage"></div>
+            </div>
+
+            <div class="stats">
+                <h3>Statistics</h3>
+                <div class="stat-item">
+                    <span>Problems Synced:</span>
+                    <span id="totalSynced">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>Last Sync:</span>
+                    <span id="lastSyncTime">Never</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="options.js"></script>
+</body>
+</html>Notion API Configuration</h2>
+                    <div class="form-group">
+                        <label for="notionApiKey">Notion API Key</label>
+                        <input type="password" id="notionApiKey" placeholder="secret_xxxxxxxxxxxxxxxx">
+                        <small>Your Notion integration secret key</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="databaseId">Database ID</label>
+                        <input type="text" id="databaseId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                        <small>The ID of your Notion database for problems</small>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>
