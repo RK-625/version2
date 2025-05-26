@@ -24,6 +24,44 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
+// Function to map language codes to Notion-supported languages
+function mapLanguageToNotion(language) {
+    const languageMap = {
+        'cpp': 'c++',
+        'c++': 'c++',
+        'java': 'java',
+        'python': 'python',
+        'javascript': 'javascript',
+        'js': 'javascript',
+        'c': 'c',
+        'csharp': 'c#',
+        'c#': 'c#',
+        'go': 'go',
+        'rust': 'rust',
+        'php': 'php',
+        'ruby': 'ruby',
+        'swift': 'swift',
+        'kotlin': 'kotlin',
+        'scala': 'scala',
+        'perl': 'perl',
+        'r': 'r',
+        'matlab': 'matlab',
+        'sql': 'sql',
+        'html': 'html',
+        'css': 'css',
+        'json': 'json',
+        'xml': 'xml',
+        'yaml': 'yaml',
+        'markdown': 'markdown',
+        'bash': 'bash',
+        'shell': 'bash',
+        'powershell': 'powershell'
+    };
+
+    const normalizedLang = (language || 'javascript').toLowerCase();
+    return languageMap[normalizedLang] || 'plain text';
+}
+
 // Function to sync problem data to Notion
 async function syncProblemToNotion(problemData) {
     try {
@@ -33,6 +71,9 @@ async function syncProblemToNotion(problemData) {
         if (!settings.notionApiKey || !settings.databaseId) {
             throw new Error('Please configure Notion API key and Database ID in extension options');
         }
+
+        // Map the language to a Notion-supported language
+        const notionLanguage = mapLanguageToNotion(problemData.language);
 
         // Create Notion page
         const response = await fetch('https://api.notion.com/v1/pages', {
@@ -105,7 +146,7 @@ async function syncProblemToNotion(problemData) {
                                     }
                                 }
                             ],
-                            language: problemData.language || 'javascript'
+                            language: notionLanguage
                         }
                     }
                 ]
